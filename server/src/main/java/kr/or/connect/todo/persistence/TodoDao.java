@@ -41,11 +41,7 @@ public class TodoDao {
 		namedParameters.put("id", id);
 		return jdbc.update(todosqls.DELETE_BY_ID, namedParameters);
 	}
-	
-	public int deleteAllcompleted() {
-		Map<String, String> namedParameters = Collections.EMPTY_MAP;
-		return jdbc.update(todosqls.DELECT_ALL_COMPLETED, namedParameters);
-	}
+
 	
 	public int updateCompleted(Todo todo) {
 		Map<String, Integer> namedParameters = new HashMap<String, Integer>();

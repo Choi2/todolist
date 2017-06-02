@@ -3,7 +3,7 @@
 
 	$().ready(function(){
 
-					$.post("/", {}, function(response) {
+					$.get("/api/todos", {}, function(response) {
 
 							var count = response.total;
 
@@ -25,16 +25,16 @@
 
 				$('.new-todo').keydown(function(e) {
 						if (e.which == 13) {
-								$.post("/insert", {
+								$.post("/api/todos", {
 											todo : $(".new-todo").val()
 											}, function(response) {
 
 												if(response.SUCCESS == "YES") {
 													var todo = $(".new-todo").val();
-													var addContext = addContextFunction(selectLatestId(), 0, todo);
+													var addContext = addContextFunction(response.id, 0, todo);
 													$(".todo-list").prepend(addContext);
+													$(".todo-count").children().html(response.total);
 													alert("글쓰기가 성공했습니다");
-													$(".todo-count").children().html(countTodo());
 													$('.new-todo').val('');
 												}
 												else if(response.SUCCESS =="NOTWRITE") {
@@ -47,53 +47,37 @@
 
 
 				$(document).on('click','.destroy', function() {
-
-						$.post("/delete", {
-								id : $(this).siblings('.id').val()
-						}, function(response) {
-								if(response.SUCCESS =="YES") {
-									var id = response.id;
-									$('.todo-list').children('li').each(function() {
-												if($(this).children().children('.id').val() == id) {
-													$(this).remove();
-												}
-									});
-
-									alert("글삭제가 완료되었습니다");
-								}
-						});
-
+						var id = $(this).parents().siblings('.id').val();
+						deleteTodo(id);
+						alert("글삭제가 완료되었습니다");
 				});
 
 
 				$(document).on('click','.toggle', function() {
 
+						var self = $(this).parents('li');
 
-						var self = $(this).parent().parent('li');
-
-						$.post("/completed", {
-								id : $(this).siblings('.id').val(),
-								completed : $(this).parent().parent('li').val()
+						$.put("/api/todos", {
+								id : $(this).parents('li').children('.id').val(),
+								completed : $(this).parents('li').val()
 						}, function(response) {
 								if(response.SUCCESS =="YES") {
 
 										if(response.completed == "0") {
 												$(self).attr('class', '');
 												$(self).attr('value', '0');
-												var count = countTodo();
-												$(".todo-count").children().html(countTodo());
+												$(".todo-count").children().html(response.total);
 										}
 
 										else {
 												$(self).attr('class', 'completed');
 												$(self).attr('value', '1');
-												$(".todo-count").children().html(countTodo());
+												$(".todo-count").children().html(response.total);
 										}
 								}
 						});
 
 				});
-
 
 
 
@@ -131,10 +115,7 @@
 
 							else if(site =='') {
 								$('.todo-list').children('li').each(function() {
-
-
 											$(this).attr('style','display:block');
-
 								});
 							}
 
@@ -145,60 +126,85 @@
 
 
 				$('.clear-completed').click(function() {
-					$.post("/deleteallcompleted", {
-					}, function(response) {
-							if(response.SUCCESS =="YES") {
-								location.reload();
-							}
-					});
+						$(".todo-list").find('li').each(function() {
+								if($(this).val() == '1') {
+										var id = $(this).children('.id').val();
+										deleteTodo(id);
+								}
+						});
 				});
-
-				function countTodo() {
-					var count = 11;
-							$.ajax({
-									url: "/counttodo",
-									type: "POST",
-									async: false, // ture: 비동기, false: 동기
-									dataType: "json",
-									success: function(data){
-											count = data.total;
-										}
-							});
-					return count;
-				}
-
-				function selectLatestId() {
-					var id = 11;
-							$.ajax({
-									url: "/selectlatestid",
-									type: "POST",
-									async: false, // ture: 비동기, false: 동기
-									dataType: "json",
-									success: function(data){
-											id = data.id;
-										}
-							});
-					return id;
-				}
 
 			function addContextFunction(id, completed, todo) {
 
 				var addContext = '<li value='+ completed + ' class=';
 				addContext += ((completed) == '1') ? 'completed>' : '>' 	;
-
+				addContext +='<input type="hidden" class="id" value='+ id +'>';
 				addContext += '<div class="view">';
 				addContext +='<input class="toggle" type="checkbox"';
 				addContext += ((completed) == '1') ? 'checked>' : '>' 	;
 				addContext +='<label> '+ todo +'</label>';
 				addContext +='<button class="destroy"></button>';
 				addContext +='<input class="edit" value="Create a TodoMVC template">';
-				addContext +='<input type="hidden" class="id" value='+ id +'>';
 				addContext += '</div></li>';
 
 				return addContext;
 			}
 
+			function deleteTodo(num) {
+
+				$.delete("/api/todos/" + num, {
+						id : num
+				}, function(response) {
+						if(response.SUCCESS =="YES") {
+							var id = response.id;
+							$('.todo-list').children('li').each(function() {
+										if($(this).children('.id').val() == id) {
+											$(this).remove();
+										}
+							});
+
+							$(".todo-count").children().html(response.total);
+						}
+				});
+
+
+			}
+
 	});
+
+	$.put = function(url, data, callback, type){
+
+  if ( $.isFunction(data) ){
+    type = type || callback,
+    callback = data,
+    data = {}
+  }
+
+  return $.ajax({
+    url: url,
+    type: 'PUT',
+    success: callback,
+    data: data,
+    contentType: type
+  });
+}
+
+$.delete = function(url, data, callback, type){
+
+  if ( $.isFunction(data) ){
+    type = type || callback,
+        callback = data,
+        data = {}
+  }
+
+  return $.ajax({
+    url: url,
+    type: 'DELETE',
+    success: callback,
+    data: data,
+    contentType: type
+  });
+}
 
 
 })(window);

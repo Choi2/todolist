@@ -8,7 +8,6 @@ public interface TodoService {
 	public boolean insertTodo(String todo); 
 	public boolean deleteTodo(int id);
 	public boolean updateCompleted(Todo todo); 
-	public boolean deleteAllCompleted();
 	public int countTodo();
 	public int selectLatestId();
 	public List<Todo> selectAll();

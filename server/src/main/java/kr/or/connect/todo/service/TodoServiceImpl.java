@@ -52,12 +52,6 @@ public class TodoServiceImpl implements TodoService {
 
 
 	@Override
-	public boolean deleteAllCompleted() {
-		return todoDao.deleteAllcompleted() > 0;
-	}
-
-
-	@Override
 	public int selectLatestId() {
 		return todoDao.selectLatestId();
 	}

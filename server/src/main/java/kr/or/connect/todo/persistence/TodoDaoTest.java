@@ -28,6 +28,6 @@ public class TodoDaoTest {
 	@Test
 	public void shouldSelectAll() {
 		Collection<Todo> listTodo = todoDao.selectAll();
-	//	System.out.println(listTodo);
+		//System.out.println(listTodo.toArray());
 	}
 }
